@@ -10,11 +10,16 @@ var hostname = "io.adafruit.com";
 var port = 8883;
 var clientId = "clientId";
 clientId += new Date().getUTCMilliseconds();;
-var username = "smoccia";
-var password = "ac7b6bfdab824cfab74b9140e6a85cda";
+var myusername = "smoccia";
+var mypassword = "ac7b6bfdab824cfab74b9140e6a85cda";
 var subscription = "smoccia/f/status";
 
-mqttClient = new Paho.Client(hostname, port, clientId);
+ mqttClient = Paho.connect('mqtts://io.adafruit.com',{
+    port: 8883,
+    username: myusername,
+    password: mypassword
+  });
+
 mqttClient.onMessageArrived = MessageArrived;
 mqttClient.onConnectionLost = ConnectionLost;
 //Connect();
