@@ -1,5 +1,7 @@
 {
   "name": "Alexa_SmartHome",
   "version": "1.0.0",
-  "dependencies": {}
+  "dependencies": {
+    "paho-mqtt": "1.1.0"
+  }
 }

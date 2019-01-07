@@ -57,7 +57,12 @@
       }
     ],
     "packageJSON": {
-      "dependencies": {}
+      "dependencies": {
+        "paho-mqtt": {
+          "name": "paho-mqtt",
+          "version": "1.1.0"
+        }
+      }
     },
     "lambdaId": "0072dea3-287d-4f78-8aff-caa534d6190a"
   },
@@ -68,12 +73,12 @@
     "projectRegion": "eu-west-1",
     "platform": "AWS",
     "platformRegions": {},
-    "lastSave": 1546880623600
+    "lastSave": 1546880703731
   },
   "VCS_STATE": {
     "provider": "GitHub",
     "repo": {
-      "name": "Alexa_SmartHome",
+      "name": "Alexa_SmartHome_Mqtt",
       "url": "https://github.com/stefanomoccia/Alexa_SmartHome_Mqtt"
     }
   }
