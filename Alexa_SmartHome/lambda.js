@@ -6,26 +6,44 @@ var Paho = require('mqtt')
 /*
 	* MQTT-WebClient example for Web-IO 4.0
 */
-var hostname = "io.adafruit.com";
-var port = 8883;
-var clientId = "clientId";
-clientId += new Date().getUTCMilliseconds();;
+var hostname = "mqtt://io.adafruit.com";
+var myport = 1883;
 var myusername = "smoccia";
 var mypassword = "ac7b6bfdab824cfab74b9140e6a85cda";
-var subscription = "smoccia/f/status";
+var subscription = "/f/status";
 
- mqttClient = Paho.connect('mqtts://io.adafruit.com',{
-    port: 8883,
+var mqttClient = Paho.connect([{
+    host: hostname,
+    port: myport,
     username: myusername,
     password: mypassword
-  });
+  }]);
 
-mqttClient.onMessageArrived = MessageArrived;
-mqttClient.onConnectionLost = ConnectionLost;
+
+//var mqttClient = Paho.connect('mqtt://test.mosquitto.org')
+
+/*mqttClient.onMessageArrived = MessageArrived;
+mqttClient.onConnectionLost = ConnectionLost;*/
+
+mqttClient.on('connect', function () {
+  console.log('CONNECTED')
+  mqttClient.subscribe('presence', function (err) {
+    if (!err) {
+      mqttClient.publish('presence', 'Hello mqtt')
+    }
+  })
+})
+ 
+mqttClient.on('message', function (topic, message) {
+  // message is Buffer
+  console.log(message.toString())
+  mqttClient.end()
+})
+
 //Connect();
 
 /*Initiates a connection to the MQTT broker*/
-function Connect(){
+/*function Connect(){
 	mqttClient.connect({
 	onSuccess: Connected,
 	onFailure: ConnectionFailed,
@@ -33,29 +51,30 @@ function Connect(){
 	userName: username,
 	useSSL: true,
 	password: password});
-}
+}*/
+
 
 /*Callback for successful MQTT connection */
-function Connected() {
+/*function Connected() {
 	console.log("Connected");
 	mqttClient.subscribe(subscription);
-}
+}*/
 
 /*Callback for failed connection*/
-function ConnectionFailed(res) {
+/*function ConnectionFailed(res) {
 	console.log("Connect failed:" + res.errorMessage);
-}
+}*/
 
 /*Callback for lost connection*/
-function ConnectionLost(res) {
-	if (res.errorCode !== 0) {
+/*function ConnectionLost(res) {
+	/*if (res.errorCode !== 0) {
 		console.log("Connection lost:" + res.errorMessage);
 		Connect();
-	}
-}
+	}*/
+//}
 
 /*Callback for incoming message processing */
-function MessageArrived(message) {
+/*function MessageArrived(message) {
 	console.log(message.destinationName +" : " + message.payloadString);
 	switch(message.payloadString){
 		case "ON":
@@ -72,7 +91,7 @@ function MessageArrived(message) {
 		var ioname = topic[1];
 		UpdateElement(ioname, displayClass);
 	}
-}
+}*/
 
 function buildSpeechletResponse(title, output, repromptText, shouldEndSession) {
     return {
