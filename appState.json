@@ -1,0 +1,80 @@
+{
+  "EDITOR_STATE": {
+    "allProjectFiles": {
+      "054dca01-d08e-4f07-aa09-c4883e26ed90": {
+        "id": "054dca01-d08e-4f07-aa09-c4883e26ed90",
+        "parent": null,
+        "name": "Alexa_SmartHome",
+        "type": "DIRECTORY",
+        "isDirectory": true,
+        "children": [
+          "0072dea3-287d-4f78-8aff-caa534d6190a"
+        ],
+        "isRemovable": false,
+        "filePath": "Alexa_SmartHome"
+      },
+      "0072dea3-287d-4f78-8aff-caa534d6190a": {
+        "id": "0072dea3-287d-4f78-8aff-caa534d6190a",
+        "parent": "054dca01-d08e-4f07-aa09-c4883e26ed90",
+        "name": "lambda.js",
+        "type": "LAMBDA_FILE",
+        "isDirectory": false,
+        "children": [],
+        "isRemovable": true,
+        "filePath": "Alexa_SmartHome/lambda.js",
+        "code": "\n\nvar http = require('http');\n\nvar Paho = require('mqtt')\n/*\n\t* MQTT-WebClient example for Web-IO 4.0\n*/\nvar hostname = \"io.adafruit.com\";\nvar port = 8883;\nvar clientId = \"clientId\";\nclientId += new Date().getUTCMilliseconds();;\nvar username = \"smoccia\";\nvar password = \"ac7b6bfdab824cfab74b9140e6a85cda\";\nvar subscription = \"smoccia/f/status\";\n\nmqttClient = new Paho.Client(hostname, port, clientId);\nmqttClient.onMessageArrived = MessageArrived;\nmqttClient.onConnectionLost = ConnectionLost;\n//Connect();\n\n/*Initiates a connection to the MQTT broker*/\nfunction Connect(){\n\tmqttClient.connect({\n\tonSuccess: Connected,\n\tonFailure: ConnectionFailed,\n\t//keepAliveInterval: 0,\n\tuserName: username,\n\tuseSSL: true,\n\tpassword: password});\n}\n\n/*Callback for successful MQTT connection */\nfunction Connected() {\n\tconsole.log(\"Connected\");\n\tmqttClient.subscribe(subscription);\n}\n\n/*Callback for failed connection*/\nfunction ConnectionFailed(res) {\n\tconsole.log(\"Connect failed:\" + res.errorMessage);\n}\n\n/*Callback for lost connection*/\nfunction ConnectionLost(res) {\n\tif (res.errorCode !== 0) {\n\t\tconsole.log(\"Connection lost:\" + res.errorMessage);\n\t\tConnect();\n\t}\n}\n\n/*Callback for incoming message processing */\nfunction MessageArrived(message) {\n\tconsole.log(message.destinationName +\" : \" + message.payloadString);\n\tswitch(message.payloadString){\n\t\tcase \"ON\":\n\t\t\tdisplayClass = \"on\";\n\t\t\tbreak;\n\t\tcase \"OFF\":\n\t\t\tdisplayClass = \"off\";\n\t\t\tbreak;\n\t\tdefault:\n\t\t\tdisplayClass = \"unknown\";\n\t}\n\tvar topic = message.destinationName.split(\"/\");\n\tif (topic.length == 3){\n\t\tvar ioname = topic[1];\n\t\tUpdateElement(ioname, displayClass);\n\t}\n}\n\nfunction buildSpeechletResponse(title, output, repromptText, shouldEndSession) {\n    return {\n        outputSpeech: {\n            type: 'PlainText',\n            text: output,\n        },\n        card: {\n            type: 'Simple',\n            title: `SessionSpeechlet - ${title}`,\n            content: `SessionSpeechlet - ${output}`,\n        },\n        reprompt: {\n            outputSpeech: {\n                type: 'PlainText',\n                text: repromptText,\n            },\n        },\n        shouldEndSession,\n    };\n}\nfunction buildResponse(sessionAttributes, speechletResponse) {\n    return {\n        version: '1.0',\n        sessionAttributes,\n        response: speechletResponse,\n    };\n}\n\n\nfunction onSessionStarted(sessionStartedRequest, session) {\n    console.log(`onSessionStarted requestId=${sessionStartedRequest.requestId}, sessionId=${session.sessionId}`);\n}\n\nfunction onLaunch(launchRequest, session, callback) {\n    console.log(`onLaunch requestId=${launchRequest.requestId}, sessionId=${session.sessionId}`);\n// Dispatch to your skill's launch.\n    getWelcomeResponse(callback);\n}\n\nfunction getWelcomeResponse(callback) {\n    const sessionAttributes = {};\n    const cardTitle = 'Welcome';\n    const speechOutput = 'Welcome to the Smart Home application of Moccias' ;\n   \n    const repromptText = 'Which light should I control ?' ;\n    const shouldEndSession = false;\ncallback(sessionAttributes,\n        buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));\n}\n\n\nfunction onIntent(intentRequest, session, callback) {\n    console.log(`onIntent requestId=${intentRequest.requestId}, sessionId=${session.sessionId}`);\nconst intent = intentRequest.intent;\n    const intentName = intentRequest.intent.name;\n// Dispatch to your skill's intent handlers\n    if (intentName === 'AMAZON.HelpIntent') {\n        getWelcomeResponse(callback);\n    } else if (intentName === 'AMAZON.StopIntent') {\n        handleSessionEndRequest(callback);\n    } else if (intentName === 'lights') {\n        var color = intent.slots.color.value;\n        var lightstatus = intent.slots.lightstatus.value;\n        lights(callback,color,lightstatus);\n    } else if (intentName === 'HelloWorldIntent') {\n        securelight(callback);\n    } \n}\n\nfunction handleSessionEndRequest(callback) {\n    const cardTitle = 'Session Ended';\n    const speechOutput = 'Thank you for using Smart Home application of Moccias, have a nice day!';\n    const shouldEndSession = true;\ncallback({}, buildSpeechletResponse(cardTitle, speechOutput, null, shouldEndSession));\n}\n\n\n\nfunction lights(callback,color,lightstatus) {\n    \n   var _switch = \"\";\n   var _status = \"\";\n   \n   if(color == \"red\")\n        _switch = \"V1\";\n   else if(color == \"green\")\n        _switch = \"V2\";\n   else if(color == \"orange\")\n        _switch = \"V0\";\n   else\n        _switch = \"error\";\n        \n    if(lightstatus == \"on\")\n        _status = \"1\";\n    else if(lightstatus == \"off\")\n        _status = \"0\";\n    \n   var endpoint = \"http://13.232.30.228:8080/ad05422526054585af9097a984f0177f/update/\"+_switch+\"?value=\"+_status;\n            var status =\"offline\";\n            var body = \"\";\n            http.get(endpoint, (response) => {\n              console.log(\"Got response: \" + response.statusCode)\n              response.on('data', (chunk) => { body += chunk })\n              response.on('end', () => {\n              })\n            });\n   \n    const sessionAttributes = {};\n    \n    //Get card title from data\n    const cardTitle = 'device status';\n    \n    //Get output from data\n    const speechOutput = 'The  ' + color + '  light is turned '+ lightstatus;\n    const repromptText = '' ;\n    const shouldEndSession = false;\ncallback(sessionAttributes,\n        buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));\n}\n\n\nfunction securelight(callback) {\n   \n    const sessionAttributes = {};\n    \n    //Get card title from data\n    const cardTitle = 'device status';\n    \n    //Get output from data\n    const speechOutput = 'The hood light is switched off ';\n    const repromptText = '' ;\n    const shouldEndSession = false;\ncallback(sessionAttributes,\n        buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));\n}\n\n\n\nfunction onSessionEnded(sessionEndedRequest, session) {\n    console.log(`onSessionEnded requestId=${sessionEndedRequest.requestId}, sessionId=${session.sessionId}`);\n    // Add cleanup logic here\n}\n\nexports.handler = (event, context, callback) => {\n    try {\n        console.log(`event.session.application.applicationId=${event.session.application.applicationId}`);\n\n\nif (event.session.new) {\n            onSessionStarted({ requestId: event.request.requestId }, event.session);\n        }\nif (event.request.type === 'LaunchRequest') {\n            onLaunch(event.request,\n                event.session,\n                (sessionAttributes, speechletResponse) => {\n                    callback(null, buildResponse(sessionAttributes, speechletResponse));\n                });\n        } else if (event.request.type === 'IntentRequest') {\n            onIntent(event.request,\n                event.session,\n                (sessionAttributes, speechletResponse) => {\n                    callback(null, buildResponse(sessionAttributes, speechletResponse));\n                });\n        } else if (event.request.type === 'SessionEndedRequest') {\n            onSessionEnded(event.request, event.session);\n            callback();\n        }\n    } catch (err) {\n        callback(err);\n    }\n};",
+        "triggers": [],
+        "config": {
+          "runtime": "nodejs8.10",
+          "timeout": 60,
+          "memory": 128
+        },
+        "testCases": {
+          "770533b6-6adb-4594-a167-080aa0073fac": {
+            "id": "770533b6-6adb-4594-a167-080aa0073fac",
+            "name": "TestHello",
+            "functionId": "0072dea3-287d-4f78-8aff-caa534d6190a",
+            "event": "{\n\t\"version\": \"1.0\",\n\t\"session\": {\n\t\t\"new\": false,\n\t\t\"sessionId\": \"amzn1.echo-api.session.df4b61da-3966-4204-b88b-94729aad4c4e\",\n\t\t\"application\": {\n\t\t\t\"applicationId\": \"amzn1.ask.skill.3f85b357-0f14-4442-abd0-b1212d0256d5\"\n\t\t},\n\t\t\"user\": {\n\t\t\t\"userId\": \"amzn1.ask.account.AFYR2UUR7A2FUUWLKHOZAY3MEJEPWMM5LGZNQJOV7Y4JDWMOM6B344X7AKN7L6ECFVJTMZDUJY73YAS62TBKYVMC65XTPEMNDTVJ5PM3GR2GXGWZBO5WJMM2RVXKVXRDMGHZX5XPQ3KWEXWLITABAN2MXSS2OQHT3T7YC4ZVXT7IA7357UCQWCELBRDSTHSET7GXSUUHMRBP3IA\"\n\t\t}\n\t},\n\t\"context\": {\n\t\t\"System\": {\n\t\t\t\"application\": {\n\t\t\t\t\"applicationId\": \"amzn1.ask.skill.3f85b357-0f14-4442-abd0-b1212d0256d5\"\n\t\t\t},\n\t\t\t\"user\": {\n\t\t\t\t\"userId\": \"amzn1.ask.account.AFYR2UUR7A2FUUWLKHOZAY3MEJEPWMM5LGZNQJOV7Y4JDWMOM6B344X7AKN7L6ECFVJTMZDUJY73YAS62TBKYVMC65XTPEMNDTVJ5PM3GR2GXGWZBO5WJMM2RVXKVXRDMGHZX5XPQ3KWEXWLITABAN2MXSS2OQHT3T7YC4ZVXT7IA7357UCQWCELBRDSTHSET7GXSUUHMRBP3IA\"\n\t\t\t},\n\t\t\t\"device\": {\n\t\t\t\t\"deviceId\": \"amzn1.ask.device.AHS6HUBMC3PCNA5RN2ZJEQNP3QD6SKOFAVAZR4ZIXMLVRYEM3VVJQRJTXJN2K4UO2TJD3T5HUMPMHQILWAJOQ4DLWHMW6QBSXS5LJEFJ6CHG4FCEAIG4CZ5U2UPVQFNB6Y7CWOVAQKOT6ZD2Z2KOJTYCSO4DP7QFLJVVQ4PIRO7HKYXIGY5MG\",\n\t\t\t\t\"supportedInterfaces\": {}\n\t\t\t},\n\t\t\t\"apiEndpoint\": \"https://api.eu.amazonalexa.com\",\n\t\t\t\"apiAccessToken\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjEifQ.eyJhdWQiOiJodHRwczovL2FwaS5hbWF6b25hbGV4YS5jb20iLCJpc3MiOiJBbGV4YVNraWxsS2l0Iiwic3ViIjoiYW16bjEuYXNrLnNraWxsLjNmODViMzU3LTBmMTQtNDQ0Mi1hYmQwLWIxMjEyZDAyNTZkNSIsImV4cCI6MTU0Njg3NDQ2NCwiaWF0IjoxNTQ2ODcwODY0LCJuYmYiOjE1NDY4NzA4NjQsInByaXZhdGVDbGFpbXMiOnsiY29uc2VudFRva2VuIjpudWxsLCJkZXZpY2VJZCI6ImFtem4xLmFzay5kZXZpY2UuQUhTNkhVQk1DM1BDTkE1Uk4yWkpFUU5QM1FENlNLT0ZBVkFaUjRaSVhNTFZSWUVNM1ZWSlFSSlRYSk4ySzRVTzJUSkQzVDVIVU1QTUhRSUxXQUpPUTRETFdITVc2UUJTWFM1TEpFRko2Q0hHNEZDRUFJRzRDWjVVMlVQVlFGTkI2WTdDV09WQVFLT1Q2WkQyWjJLT0pUWUNTTzREUDdRRkxKVlZRNFBJUk83SEtZWElHWTVNRyIsInVzZXJJZCI6ImFtem4xLmFzay5hY2NvdW50LkFGWVIyVVVSN0EyRlVVV0xLSE9aQVkzTUVKRVBXTU01TEdaTlFKT1Y3WTRKRFdNT002QjM0NFg3QUtON0w2RUNGVkpUTVpEVUpZNzNZQVM2MlRCS1lWTUM2NVhUUEVNTkRUVko1UE0zR1IyR1hHV1pCTzVXSk1NMlJWWEtWWFJETUdIWlg1WFBRM0tXRVhXTElUQUJBTjJNWFNTMk9RSFQzVDdZQzRaVlhUN0lBNzM1N1VDUVdDRUxCUkRTVEhTRVQ3R1hTVVVITVJCUDNJQSJ9fQ.QqugwdtoNKPkR-h57v5aAhxqG3UxYwgnrG3-DVa9k6LrXA82EhOIgIGBKXtSHJ-3mqFmlBBoUnTfOB3xKQTXaLWFoIW8qOaC46OMDzSxQeo9achlxETALpi7UirG6FeOmfW5MRKCRNEL7YLsFFYuxe6pULJEYdLVd01KqUvJtH6nuzlPiYtkiqTp2XnW6ax_oFgO8yFakMd4M_W8BiUqjkVG5evW4_5VuIpJixa9N-RaAJEGIzRGFR1lBo5Cod6M5ew5Vy8YctzSJ-JDmCDN4v_JF-x909JOt3u_KdmRRrw-AVLoS6s87nrjeRVfzuTstFIHVTIdvj9sQtQ3oOFtag\"\n\t\t},\n\t\t\"Viewport\": {\n\t\t\t\"experiences\": [\n\t\t\t\t{\n\t\t\t\t\t\"arcMinuteWidth\": 246,\n\t\t\t\t\t\"arcMinuteHeight\": 144,\n\t\t\t\t\t\"canRotate\": false,\n\t\t\t\t\t\"canResize\": false\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"shape\": \"RECTANGLE\",\n\t\t\t\"pixelWidth\": 1024,\n\t\t\t\"pixelHeight\": 600,\n\t\t\t\"dpi\": 160,\n\t\t\t\"currentPixelWidth\": 1024,\n\t\t\t\"currentPixelHeight\": 600,\n\t\t\t\"touch\": [\n\t\t\t\t\"SINGLE\"\n\t\t\t]\n\t\t}\n\t},\n\t\"request\": {\n\t\t\"type\": \"IntentRequest\",\n\t\t\"requestId\": \"amzn1.echo-api.request.12d76dc7-bc28-494b-bbcf-a68a5f722a78\",\n\t\t\"timestamp\": \"2019-01-07T14:21:04Z\",\n\t\t\"locale\": \"en-US\",\n\t\t\"intent\": {\n\t\t\t\"name\": \"HelloWorldIntent\",\n\t\t\t\"confirmationStatus\": \"NONE\"\n\t\t}\n\t}\n}"
+          }
+        }
+      }
+    },
+    "deletedFiles": [],
+    "rootNode": "054dca01-d08e-4f07-aa09-c4883e26ed90",
+    "openFiles": [
+      "0072dea3-287d-4f78-8aff-caa534d6190a"
+    ],
+    "currentFileId": "0072dea3-287d-4f78-8aff-caa534d6190a",
+    "resources": {},
+    "envVariables": [
+      {
+        "lambdaId": "all",
+        "varKey": "SIGMA_AWS_ACC_ID",
+        "varValue": null,
+        "shouldPersist": false,
+        "displayOnly": false,
+        "editable": false
+      }
+    ],
+    "packageJSON": {
+      "dependencies": {}
+    },
+    "lambdaId": "0072dea3-287d-4f78-8aff-caa534d6190a"
+  },
+  "PROJECT_META": {
+    "projectName": "Alexa_SmartHome",
+    "projectDescription": "Alexa integration for Smart Home",
+    "projectVersion": "1.0.0",
+    "projectRegion": "eu-west-1",
+    "platform": "AWS",
+    "platformRegions": {},
+    "lastSave": 1546880623600
+  },
+  "VCS_STATE": {
+    "provider": "GitHub",
+    "repo": {
+      "name": "Alexa_SmartHome",
+      "url": "https://github.com/stefanomoccia/Alexa_SmartHome_Mqtt"
+    }
+  }
+}
