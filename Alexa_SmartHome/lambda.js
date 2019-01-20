@@ -1,31 +1,33 @@
-
-
 var http = require('http');
 
 var Paho = require('mqtt')
-
 /*
 	* MQTT-WebClient example for Web-IO 4.0
 */
 var hostname = "io.adafruit.com";
-var port = 1883;
-var clientId = "webio4mqttexample";
+var port = 8883;
+var clientId = "clientId";
 clientId += new Date().getUTCMilliseconds();;
-var username = "smoccia";
-var password = "ac7b6bfdab824cfab74b9140e6a85cda";
+var myusername = "smoccia";
+var mypassword = "ac7b6bfdab824cfab74b9140e6a85cda";
 var subscription = "smoccia/f/status";
 
-mqttClient = new Paho.MQTT.Client(hostname, port, clientId);
+ mqttClient = Paho.connect('mqtts://io.adafruit.com',{
+    port: 8883,
+    username: myusername,
+    password: mypassword
+  });
+
 mqttClient.onMessageArrived = MessageArrived;
 mqttClient.onConnectionLost = ConnectionLost;
-Connect();
+//Connect();
 
 /*Initiates a connection to the MQTT broker*/
 function Connect(){
 	mqttClient.connect({
 	onSuccess: Connected,
 	onFailure: ConnectionFailed,
-	keepAliveInterval: 10,
+	//keepAliveInterval: 0,
 	userName: username,
 	useSSL: true,
 	password: password});
@@ -112,7 +114,7 @@ function onLaunch(launchRequest, session, callback) {
 function getWelcomeResponse(callback) {
     const sessionAttributes = {};
     const cardTitle = 'Welcome';
-    const speechOutput = 'Benvenuti in Casa Moccia' ;
+    const speechOutput = 'Welcome to the Smart Home application of Moccias' ;
    
     const repromptText = 'Which light should I control ?' ;
     const shouldEndSession = false;
@@ -199,7 +201,7 @@ function securelight(callback) {
     const cardTitle = 'device status';
     
     //Get output from data
-    const speechOutput = 'La luce è spenta ';
+    const speechOutput = 'The hood light is switched off ';
     const repromptText = '' ;
     const shouldEndSession = false;
 callback(sessionAttributes,
