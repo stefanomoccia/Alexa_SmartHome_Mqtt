@@ -2,79 +2,56 @@
 
 var http = require('http');
 
-var Paho = require('mqtt')
+var Paho = require("https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js")
+
 /*
 	* MQTT-WebClient example for Web-IO 4.0
 */
-var hostname = "mqtt://io.adafruit.com";
-var myport = 1883;
-var myusername = "smoccia";
-var mypassword = "ac7b6bfdab824cfab74b9140e6a85cda";
-var subscription = "/f/status";
+var hostname = "io.adafruit.com";
+var port = 1883;
+var clientId = "webio4mqttexample";
+clientId += new Date().getUTCMilliseconds();;
+var username = "smoccia";
+var password = "ac7b6bfdab824cfab74b9140e6a85cda";
+var subscription = "smoccia/f/status";
 
-var mqttClient = Paho.connect([{
-    host: hostname,
-    port: myport,
-    username: myusername,
-    password: mypassword
-  }]);
-
-
-//var mqttClient = Paho.connect('mqtt://test.mosquitto.org')
-
-/*mqttClient.onMessageArrived = MessageArrived;
-mqttClient.onConnectionLost = ConnectionLost;*/
-
-mqttClient.on('connect', function () {
-  console.log('CONNECTED')
-  mqttClient.subscribe('presence', function (err) {
-    if (!err) {
-      mqttClient.publish('presence', 'Hello mqtt')
-    }
-  })
-})
- 
-mqttClient.on('message', function (topic, message) {
-  // message is Buffer
-  console.log(message.toString())
-  mqttClient.end()
-})
-
-//Connect();
+mqttClient = new Paho.MQTT.Client(hostname, port, clientId);
+mqttClient.onMessageArrived = MessageArrived;
+mqttClient.onConnectionLost = ConnectionLost;
+Connect();
 
 /*Initiates a connection to the MQTT broker*/
-/*function Connect(){
+function Connect(){
 	mqttClient.connect({
 	onSuccess: Connected,
 	onFailure: ConnectionFailed,
-	//keepAliveInterval: 0,
+	keepAliveInterval: 10,
 	userName: username,
 	useSSL: true,
 	password: password});
-}*/
-
+}
 
 /*Callback for successful MQTT connection */
-/*function Connected() {
+function Connected() {
 	console.log("Connected");
 	mqttClient.subscribe(subscription);
-}*/
+}
 
 /*Callback for failed connection*/
-/*function ConnectionFailed(res) {
+function ConnectionFailed(res) {
 	console.log("Connect failed:" + res.errorMessage);
-}*/
+}
 
 /*Callback for lost connection*/
-/*function ConnectionLost(res) {
-	/*if (res.errorCode !== 0) {
+function ConnectionLost(res) {
+	if (res.errorCode !== 0) {
 		console.log("Connection lost:" + res.errorMessage);
 		Connect();
-	}*/
-//}
+	}
+}
 
 /*Callback for incoming message processing */
-/*function MessageArrived(message) {
+function MessageArrived(message) {
 	console.log(message.destinationName +" : " + message.payloadString);
 	switch(message.payloadString){
 		case "ON":
@@ -91,7 +68,7 @@ mqttClient.on('message', function (topic, message) {
 		var ioname = topic[1];
 		UpdateElement(ioname, displayClass);
 	}
-}*/
+}
 
 function buildSpeechletResponse(title, output, repromptText, shouldEndSession) {
     return {
@@ -135,7 +112,7 @@ function onLaunch(launchRequest, session, callback) {
 function getWelcomeResponse(callback) {
     const sessionAttributes = {};
     const cardTitle = 'Welcome';
-    const speechOutput = 'Welcome to the Smart Home application of Moccias' ;
+    const speechOutput = 'Benvenuti in Casa Moccia' ;
    
     const repromptText = 'Which light should I control ?' ;
     const shouldEndSession = false;
