@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "dependencies": {
     "mqtt": "2.18.8",
-    "adafruit-io": "4.4.0",
-    "paho-mqtt": "1.0.2"
+    "adafruit-io": "4.4.0"
   }
 }
