@@ -2,7 +2,7 @@
 
 var http = require('http');
 
-var Paho = require("https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js")
+var Paho = require("https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.2/mqttws31.min.js")
 
 /*
 	* MQTT-WebClient example for Web-IO 4.0
