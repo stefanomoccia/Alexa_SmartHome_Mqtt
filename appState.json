@@ -57,12 +57,7 @@
       }
     ],
     "packageJSON": {
-      "dependencies": {
-        "adafruit-io": {
-          "name": "adafruit-io",
-          "version": "4.4.0"
-        }
-      }
+      "dependencies": {}
     },
     "lambdaId": "0072dea3-287d-4f78-8aff-caa534d6190a"
   },
@@ -73,7 +68,7 @@
     "projectRegion": "eu-west-1",
     "platform": "AWS",
     "platformRegions": {},
-    "lastSave": 1549296738652
+    "lastSave": 1549297107404
   },
   "VCS_STATE": {
     "provider": "GitHub",
